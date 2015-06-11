@@ -1,9 +1,18 @@
 # AppNexus API Test
 Code to test AppNexus' API for this StackOverflow question: http://stackoverflow.com/questions/30673678/dimensions-not-returned-by-appnexus-api
 
-To make test API calls:
+Properties for the Python scripts will be imported from a file called `appnexus-default.properties`. Create a text file that looks like this (but use your own MySQL/AppNexus credentials):
 
-Clone the git repository, edit `appnexus-default.properties` with a valid set of API credentials, make `appnexusTestReport.py` executable (i.e. `chmod +x appnexusTestReport.py`) and run it:
+    [appnexus]
+    username=alexwoolford
+    password=password123
+    publisher_id=123456
+
+    [database]
+    username=awoolford
+    password=passord123
+    host=localhost
+    db=appnexus
 
 Currently, the dimensions are missing from the response:
 
