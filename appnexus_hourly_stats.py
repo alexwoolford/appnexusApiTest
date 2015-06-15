@@ -63,60 +63,63 @@ class AppNexusHourlyStats:
 
     def writeHourlyDataToDB(self):
         for publisher_id in self.publisher_ids:
-            report_json = json.dumps(eval("""{{   "report": {{
-                                                        "row_per": [
-                                                            "hour"
-                                                        ],
-                                                        "report_interval": "last_48_hours",
-                                                        "timezone": "EST5EDT",
-                                                        "columns": [
-                                                            {columns}
-                                                        ],
-                                                        "orders": [
-                                                            "hour"
-                                                        ],
-                                                        "report_type": "network_publisher_analytics",
-                                                        "filters": [
-                                                            {{
-                                                                "publisher_id": "{publisher_id}"
-                                                            }},
-                                                            {{
-                                                                "member_id": "982"
-                                                            }},
-                                                            {{
-                                                                "seller_member_id": "982"
-                                                            }},
-                                                            {{
-                                                                "imp_type": [
-                                                                    "Resold"
-                                                                ]
-                                                            }}
-                                                        ]
-                                                    }}
-                                                }}""".format(columns=self.columns_quoted, publisher_id=publisher_id)))
 
-            response = self.s.post("http://api.appnexus.com/report?publisher_id={publisher_id}".format(publisher_id=publisher_id), data=report_json)
-            report_id = json.loads(response.content)['response']['report_id']
-            time.sleep(1)
-            report = self.s.get("http://api.appnexus.com/report-download?" + urllib.urlencode({'id': report_id}))
+            try:
+                report_json = json.dumps(eval("""{{   "report": {{
+                                                            "row_per": [
+                                                                "hour"
+                                                            ],
+                                                            "report_interval": "last_48_hours",
+                                                            "timezone": "EST5EDT",
+                                                            "columns": [
+                                                                {columns}
+                                                            ],
+                                                            "orders": [
+                                                                "hour"
+                                                            ],
+                                                            "report_type": "network_publisher_analytics",
+                                                            "filters": [
+                                                                {{
+                                                                    "publisher_id": "{publisher_id}"
+                                                                }},
+                                                                {{
+                                                                    "member_id": "982"
+                                                                }},
+                                                                {{
+                                                                    "seller_member_id": "982"
+                                                                }},
+                                                                {{
+                                                                    "imp_type": [
+                                                                        "Resold"
+                                                                    ]
+                                                                }}
+                                                            ]
+                                                        }}
+                                                    }}""".format(columns=self.columns_quoted, publisher_id=publisher_id)))
 
-            cursor = self.con.cursor()
+                response = self.s.post("http://api.appnexus.com/report?publisher_id={publisher_id}".format(publisher_id=publisher_id), data=report_json)
+                report_id = json.loads(response.content)['response']['report_id']
+                time.sleep(2)
+                report = self.s.get("http://api.appnexus.com/report-download?" + urllib.urlencode({'id': report_id}))
 
-            for record in report.content.strip().split("\n")[1:]:
+                cursor = self.con.cursor()
 
-                # TODO: make the SQL insert statement dynamically generate from the defined columns.
+                for record in report.content.strip().split("\n")[1:]:
 
-                hour, imps_total, imps_sold, clicks, network_revenue, publisher_revenue, total_network_rpm, sold_network_rpm = [elem.strip() for elem in record.split(",")]
+                    # TODO: make the SQL insert statement dynamically generate from the defined columns.
 
-                sql = """INSERT INTO appnexus_detailed_stats ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}) """.format("publisher_id", "hour", "imps_total", "imps_sold", "clicks", "network_revenue", "publisher_revenue", "total_network_rpm", "sold_network_rpm") + \
-                      """VALUES ({0}, '{1}', {2}, {3}, {4}, {5}, {6}, {7}, {8})""".format(publisher_id, hour, imps_total, imps_sold, clicks, network_revenue, publisher_revenue, total_network_rpm, sold_network_rpm)
+                    hour, imps_total, imps_sold, clicks, network_revenue, publisher_revenue, total_network_rpm, sold_network_rpm = [elem.strip() for elem in record.split(",")]
 
-                try:
+                    sql = """INSERT INTO appnexus_detailed_stats ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}) """.format("publisher_id", "hour", "imps_total", "imps_sold", "clicks", "network_revenue", "publisher_revenue", "total_network_rpm", "sold_network_rpm") + \
+                          """VALUES ({0}, '{1}', {2}, {3}, {4}, {5}, {6}, {7}, {8})""".format(publisher_id, hour, imps_total, imps_sold, clicks, network_revenue, publisher_revenue, total_network_rpm, sold_network_rpm)
+
                     cursor.execute(sql)
-                except:
-                    print(sys.exc_info())
 
-            cursor.execute('commit')
+                cursor.execute('commit')
+
+            except:
+                print("Error processing publisher_id " + publisher_id + "; report_id " + report_id)
+                print(sys.exc_info())
 
 if __name__ == "__main__":
     appNexusHourlyStats = AppNexusHourlyStats()

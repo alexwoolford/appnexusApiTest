@@ -10,12 +10,8 @@ Properties for the Python scripts will be imported from a file called `appnexus-
 
     [database]
     username=awoolford
-    password=passord123
+    password=password123
     host=localhost
     db=appnexus
 
-Currently, the dimensions are missing from the response:
-
-    $ ./appnexusTestReport.py 
-    imps_total,imps_resold,publisher_filled_revenue
-    70348087,44791802,1066.929657
+First, execute `appnexus_basic_stats.py` to create a list of active publishers, then `appnexus_hourly_stats.py` to get hourly statistics written to the MySQL database.
