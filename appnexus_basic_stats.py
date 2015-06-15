@@ -10,10 +10,19 @@ config.read('appnexus-default.properties')
 
 
 class AppNexusBasicStats:
-    """AppNexus basic stats"""
+    """Gets AppNexus basic stats (impressions and revenue) and writes them to a MySQL table"""
 
     def __init__(self):
+
+        # The possible named report intervals are documented here: https://wiki.appnexus.com/display/api/Report+Service
+        # Search on the page for "report_interval"
+        self.report_interval = "today"
+
         self.authenticate()
+        self.connectToDB()
+        self.createTable()
+        self.createReportChunkUrls()
+        self.makeCallsAndWriteToDB()
 
     def authenticate(self):
         self.s = requests.session()
@@ -39,7 +48,7 @@ class AppNexusBasicStats:
         self.urls = []
         for start_element in start_elements:
             url = "http://api.appnexus.com/publisher?" + urllib.urlencode(
-                {"state": "active", "interval": "lifetime", "sort": "imps.desc", "stats": "true",
+                {"state": "active", "interval": self.report_interval, "sort": "imps.desc", "stats": "true",
                  "object_status": "true", "is_rtb": "false", "start_element": start_element, "num_elements": "100"})
             self.urls.append(url)
 
@@ -66,10 +75,5 @@ class AppNexusBasicStats:
 
         self.cursor.execute('commit')
 
-
 if __name__ == "__main__":
     appNexusBasicStats = AppNexusBasicStats()
-    appNexusBasicStats.createReportChunkUrls()
-    appNexusBasicStats.connectToDB()
-    appNexusBasicStats.createTable()
-    appNexusBasicStats.makeCallsAndWriteToDB()
