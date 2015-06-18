@@ -46,8 +46,8 @@ class AppNexusHourlyStats:
                          2:("imps_total", "int"),
                          3:("imps_sold", "int"),
                          4:("clicks", "int"),
-                         5:("network_revenue", "Decimal"),
-                         6:("publisher_revenue", "Decimal"),
+                         5:("network_revenue", "Decimal(15,5)"),
+                         6:("publisher_revenue", "Decimal(15,5)"),
                          7:("total_network_rpm", "double"),
                          8:("sold_network_rpm", "double")})
 
@@ -80,13 +80,13 @@ class AppNexusHourlyStats:
                                                             "report_type": "network_publisher_analytics",
                                                             "filters": [
                                                                 {{
-                                                                    "publisher_id": "{publisher_id}"
+                                                                    "publisher_id": {publisher_id}
                                                                 }},
                                                                 {{
-                                                                    "member_id": "982"
+                                                                    "member_id": 982
                                                                 }},
                                                                 {{
-                                                                    "seller_member_id": "982"
+                                                                    "seller_member_id": 982
                                                                 }},
                                                                 {{
                                                                     "imp_type": [
@@ -118,7 +118,7 @@ class AppNexusHourlyStats:
                 cursor.execute('commit')
 
             except:
-                print("Error processing publisher_id " + publisher_id + "; report_id " + report_id)
+                print("Error processing publisher_id " + str(publisher_id) + "; report_id " + report_id)
                 print(sys.exc_info())
 
 if __name__ == "__main__":
